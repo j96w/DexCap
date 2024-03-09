@@ -14,7 +14,6 @@ def read_pose_data(frame_path, demo_path, first_frame=False):
     cam_pose_path = os.path.join(frame_path, "pose.txt")
 
     # load left hand pose
-
     left_pose_path = os.path.join(frame_path, "pose_2.txt")
     left_hand_pos_path = os.path.join(frame_path, "left_hand_joint.txt")
     left_hand_ori_path = os.path.join(frame_path, "left_hand_joint_ori.txt")
@@ -29,7 +28,6 @@ def read_pose_data(frame_path, demo_path, first_frame=False):
     left_hand_wrist_ori = np.loadtxt(left_hand_ori_path)[0]
 
     # load right hand pose
-
     pose_path = os.path.join(frame_path, "pose_3.txt")
     hand_pos_path = os.path.join(frame_path, "right_hand_joint.txt")
     hand_ori_path = os.path.join(frame_path, "right_hand_joint_ori.txt")
@@ -43,13 +41,9 @@ def read_pose_data(frame_path, demo_path, first_frame=False):
     right_hand_joint_xyz = translate_wrist_to_origin(right_hand_joint_xyz)  # canonical view by translate to origin
     right_hand_wrist_ori = np.loadtxt(hand_ori_path)[0]
 
-    if os.path.exists(os.path.join(frame_path, "right_joints.txt")) and False:
-        right_hand_target = np.loadtxt(os.path.join(frame_path, "right_joints.txt"))
-        left_hand_target = np.loadtxt(os.path.join(frame_path, "left_joints.txt"))
-    else:
-        right_hand_target, left_hand_target, right_hand_points, left_hand_points = leapPybulletIK.compute_IK(right_hand_joint_xyz, right_hand_wrist_ori, left_hand_joint_xyz, left_hand_wrist_ori)
-        np.savetxt(os.path.join(frame_path, "right_joints.txt"), right_hand_target)
-        np.savetxt(os.path.join(frame_path, "left_joints.txt"), left_hand_target)
+    right_hand_target, left_hand_target, right_hand_points, left_hand_points = leapPybulletIK.compute_IK(right_hand_joint_xyz, right_hand_wrist_ori, left_hand_joint_xyz, left_hand_wrist_ori)
+    np.savetxt(os.path.join(frame_path, "right_joints.txt"), right_hand_target)
+    np.savetxt(os.path.join(frame_path, "left_joints.txt"), left_hand_target)
 
     # convert left hand pose
     left_rotation_matrix = Rotation.from_quat(left_hand_wrist_ori).as_matrix().T
@@ -213,7 +207,6 @@ def process_hdf5(output_hdf5_file, dataset_folders, action_gap, num_points_to_sa
                     filtered_depth_image = o3d.geometry.Image(depth_array)
                     rgbd = o3d.geometry.RGBDImage.create_from_color_and_depth(color_image_o3d, filtered_depth_image, depth_trunc=4.0, convert_rgb_to_intensity=False)
 
-
                     pose_4x4 = np.loadtxt(os.path.join(dataset_folder, frame_folder, "pose.txt"))
                     between_cam = np.eye(4)
                     between_cam[:3, :3] = np.array([[1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, -1.0]])
@@ -226,13 +219,13 @@ def process_hdf5(output_hdf5_file, dataset_folders, action_gap, num_points_to_sa
                     if right_hand_show: # detected right hand in the view, merge right leap hand pointcloud into inputs
                         transformed_point_cloud = transform_right_leap_pointcloud_to_camera_frame(right_hand_points, pose_data)
 
-                        colored_hand_point_cloud = np.concatenate((transformed_point_cloud, np.ones((transformed_point_cloud.shape[0], 3))), axis=1)
+                        colored_hand_point_cloud = np.concatenate((transformed_point_cloud, np.zeros((transformed_point_cloud.shape[0], 3))), axis=1)
                         color_pcd = np.concatenate((color_pcd, colored_hand_point_cloud), axis=0)
 
                     if left_hand_show: # detected left hand in the view, merge left leap hand pointcloud into inputs
                         transformed_point_cloud_left = transform_left_leap_pointcloud_to_camera_frame(left_hand_points, left_pose_data)
 
-                        colored_hand_point_cloud_left = np.concatenate((transformed_point_cloud_left, np.ones((transformed_point_cloud_left.shape[0], 3))), axis=1)
+                        colored_hand_point_cloud_left = np.concatenate((transformed_point_cloud_left, np.zeros((transformed_point_cloud_left.shape[0], 3))), axis=1)
                         color_pcd = np.concatenate((color_pcd, colored_hand_point_cloud_left), axis=0)
 
                     # remove the redundant points bellow the table surface and background
@@ -258,6 +251,8 @@ def process_hdf5(output_hdf5_file, dataset_folders, action_gap, num_points_to_sa
 
                     # update pointcloud visualization
                     pcd_vis.points = o3d.utility.Vector3dVector(color_pcd[:, :3])
+                    pcd_vis.colors = o3d.utility.Vector3dVector(color_pcd[:, 3:])
+
                     if firstfirst:
                         vis.add_geometry(pcd_vis)
                         firstfirst = False
@@ -326,7 +321,6 @@ def process_hdf5(output_hdf5_file, dataset_folders, action_gap, num_points_to_sa
                     mean_init_pos.append(copy.deepcopy(robot0_eef_pos[j]))
                     mean_init_quat.append(copy.deepcopy(robot0_eef_quat[j]))
                     mean_init_hand.append(copy.deepcopy(robot0_eef_hand[j]))
-
 
         output_data_group.attrs['total'] = total_frames
 
