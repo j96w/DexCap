@@ -1,0 +1,28 @@
+PC:
+  NAME: "rosie"
+  IP: 172.16.0.4
+  # PUB_PORT: 5555
+  # SUB_PORT: 5556
+
+NUC:
+  NAME: "alice"
+  IP: 172.16.0.3
+  PUB_PORT: 5558
+  SUB_PORT: 5557
+  GRIPPER_PUB_PORT: 5560
+  GRIPPER_SUB_PORT: 5559
+
+ROBOT:
+  IP: 172.16.0.6
+
+
+control:
+  x: 0.1
+  y: 0.1
+  z: -0.1
+  ax: 0.0
+  ay: 0.0
+  az: 0.0
+  kp:
+    p: 150.0
+    r: 60.0

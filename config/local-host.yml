@@ -1,0 +1,14 @@
+PC:
+  NAME: "rosie"
+  IP: localhost
+
+NUC:
+  IP: localhost
+  NAME: "alice"
+  PUB_PORT: 5556
+  SUB_PORT: 5555
+  GRIPPER_PUB_PORT: 5558
+  GRIPPER_SUB_PORT: 5557
+
+ROBOT:
+  IP: 172.16.0.6

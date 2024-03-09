@@ -1,0 +1,11 @@
+# Seems smooth enough
+joint_kp: [100., 100., 100., 100., 75., 150., 50.]
+joint_kd: [20., 20., 20., 20., 7.5, 15.0, 5.0]
+
+# # A little bit shaky
+# joint_kp: [600., 600., 600., 600., 75., 150., 50.]
+# joint_kd: [50., 50., 50., 50., 7.5, 15.0, 5.0]
+
+# original (with critical damping)
+# joint_kp: [50., 50., 50., 50., 5., 20., 20.]
+# joint_kd: null # [0., 0., 0., 0., 0., 0., 0.]

@@ -1,0 +1,8 @@
+{
+    "documentId": "09863e3e80c711f29d3aebdf",
+    "outputFormat": "urdf",
+    "onshape_api": "https://cad.onshape.com",
+    "onshape_access_key": "HJMl1DIzVrRDYKKj6CuejmCF",
+    "onshape_secret_key": "YQygtiVskYSvB4QpgA8wbE7DNIlDBhRIMVJEhc0HIaShAkiI",
+    "noDynamics": true
+}
