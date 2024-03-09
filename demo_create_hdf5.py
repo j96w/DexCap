@@ -1,4 +1,3 @@
-from pybullet_ik_bimanual import LeapPybulletIK
 from dataset_utils import *
 
 dataset_base_dir = '/media/jeremy/cde0dfff-70f1-4c1c-82aa-e0d469c14c62/franka_leap_control_datasets/save_wipe_1-14'
