@@ -3,6 +3,7 @@ import json
 from scipy.linalg import svd
 from pybullet_ik_bimanual import LeapPybulletIK
 from utils import *
+from hyperparameters import *
 
 def read_pose_data(frame_path, demo_path, first_frame=False):
     global leapPybulletIK

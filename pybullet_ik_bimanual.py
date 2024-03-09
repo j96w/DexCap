@@ -1,8 +1,8 @@
 import pybullet_data
 from yourdfpy import URDF
 from transforms3d.euler import quat2euler, euler2quat
-
 from utils import *
+from hyperparameters import *
 
 class LeapPybulletIK():
     def __init__(self):
