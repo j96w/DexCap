@@ -15,7 +15,7 @@ class LeapPybulletIK():
 
         # load right leap hand
         self.LeapId = p.loadURDF(
-            "leap_hand/robot_pybullet.urdf",
+            "leap_hand_mesh/robot_pybullet.urdf",
             [0.0, 0.0, 0.0],
             rotate_quaternion(0.0, 0.0, 0.0),
         )
@@ -26,7 +26,7 @@ class LeapPybulletIK():
         # load left leap hand
         self.left_offset = 1.0
         self.LeapId_2 = p.loadURDF(
-            "leap_hand/robot_pybullet.urdf",
+            "leap_hand_mesh/robot_pybullet.urdf",
             [0.0, self.left_offset, 0.0],
             rotate_quaternion(0.0, 0.0, 0.0),
         )
@@ -44,8 +44,8 @@ class LeapPybulletIK():
 
         # load URDF of left and right hand for generating pointcloud during forward kinematics
         self.urdf_dict = {}
-        self.Leap_urdf = URDF.load("leap_hand/robot_pybullet.urdf")
-        self.Leap_urdf_2 = URDF.load("leap_hand/robot_pybullet.urdf")
+        self.Leap_urdf = URDF.load("leap_hand_mesh/robot_pybullet.urdf")
+        self.Leap_urdf_2 = URDF.load("leap_hand_mesh/robot_pybullet.urdf")
         self.urdf_dict["right_leap"] = {
             "scene": self.Leap_urdf.scene,
             "mesh_list": self._load_meshes(self.Leap_urdf.scene),
