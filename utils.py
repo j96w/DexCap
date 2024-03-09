@@ -12,6 +12,14 @@ from transforms3d.axangles import axangle2mat
 from transforms3d.euler import mat2euler, quat2mat, euler2mat
 from hyperparameters import *
 
+def extract_dataset_folder_last_two_digits(dir_name):
+    # Extract the last two characters, ensure they are digits, and convert to integer
+    last_two = dir_name[-2:]  # Get the last two characters
+    if last_two.isdigit():
+        return int(last_two)
+    else:
+        return -1  # Return -1 (or some other value) if there are no digits
+
 def resize_image(image_path):
     image = cv2.imread(image_path)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
