@@ -14,6 +14,12 @@ with open(REALROBOT_LEFT_HAND_OFFSET_CONFIG_PATH) as f:
     REALROBOT_LEFT_HAND_OFFSET = yaml.safe_load(f)
 
 # chest camera fixed transformation
+between_cam = np.eye(4)
+between_cam[:3, :3] = np.array([[1.0, 0.0, 0.0],
+                                [0.0, -1.0, 0.0],
+                                [0.0, 0.0, -1.0]])
+between_cam[:3, 3] = np.array([0.0, 0.076, 0.0])
+
 between_cam_2 = np.eye(4)
 between_cam_2[:3, :3] = np.array([[1.0, 0.0, 0.0],
                                        [0.0, 1.0, 0.0],

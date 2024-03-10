@@ -8,7 +8,7 @@ from pybullet_ik_bimanual import LeapPybulletIK
 leapPybulletIK = LeapPybulletIK()
 R_delta_init = None
 
-def read_pose_data(frame_path, demo_path, first_frame=False):
+def read_pose_data(frame_path, demo_path, fixed_trans_to_robot_table, first_frame=False):
     global leapPybulletIK
 
     cam_pose_path = os.path.join(frame_path, "pose.txt")
@@ -21,6 +21,7 @@ def read_pose_data(frame_path, demo_path, first_frame=False):
     left_hand_off_ori_path = os.path.join(demo_path, "calib_ori_offset_left.txt")
 
     pose_2 = np.loadtxt(left_pose_path)
+    pose_2[:3, 3] += fixed_trans_to_robot_table.T
     pose_2 = pose_2 @ between_cam_2
 
     left_hand_joint_xyz = np.loadtxt(left_hand_pos_path)
@@ -35,6 +36,7 @@ def read_pose_data(frame_path, demo_path, first_frame=False):
     hand_off_ori_path = os.path.join(demo_path, "calib_ori_offset.txt")
 
     pose_3 = np.loadtxt(pose_path)
+    pose_3[:3, 3] += fixed_trans_to_robot_table.T
     pose_3 = pose_3 @ between_cam_3
 
     right_hand_joint_xyz = np.loadtxt(hand_pos_path)
@@ -116,11 +118,8 @@ def read_pose_data(frame_path, demo_path, first_frame=False):
     right_hand_quaternion = mat2quat(right_hand_rotation_matrix)
 
     cam_pose_4x4 = np.loadtxt(cam_pose_path)
-    between_cam = np.eye(4)
-    between_cam[:3, :3] = np.array([[1.0, 0.0, 0.0],
-                                     [0.0, -1.0, 0.0],
-                                     [0.0, 0.0, -1.0]])
-    between_cam[:3, 3] = np.array([0.0, 0.076, 0.0])
+    cam_pose_4x4[:3, 3] += fixed_trans_to_robot_table.T
+
     cam_corrected_pose = cam_pose_4x4 @ between_cam
     cam_corrected_pose = cam_corrected_pose.flatten()
 
@@ -132,7 +131,7 @@ def read_pose_data(frame_path, demo_path, first_frame=False):
             right_hand_points,
             left_hand_points)
 
-def process_hdf5(output_hdf5_file, dataset_folders, action_gap, num_points_to_sample):
+def process_hdf5(output_hdf5_file, dataset_folders, action_gap, num_points_to_sample, in_wild_data=False):
     global R_delta_init
 
     vis = o3d.visualization.Visualizer()
@@ -152,6 +151,11 @@ def process_hdf5(output_hdf5_file, dataset_folders, action_gap, num_points_to_sa
         for dataset_folder in dataset_folders:
             clip_marks_json = os.path.join(dataset_folder, 'clip_marks.json')
 
+            if in_wild_data: # if the data is collected in the wild, read the fix translation to the robot table
+                fixed_trans_to_robot_table = np.loadtxt(os.path.join(dataset_folder, 'map_to_robot_table_trans.txt'))
+            else:
+                fixed_trans_to_robot_table = np.array([0.0, 0.0, 0.0])
+
             # Load clip marks
             with open(clip_marks_json, 'r') as file:
                 clip_marks = json.load(file)
@@ -159,7 +163,7 @@ def process_hdf5(output_hdf5_file, dataset_folders, action_gap, num_points_to_sa
             for clip in clip_marks:
 
                 # save frame0 & update R_delta_init
-                frame0_pose_data, frame0_left_pose_data, _, _, _, _, _ = read_pose_data(os.path.join(dataset_folder, f'frame_0'), dataset_folder, first_frame=True)
+                frame0_pose_data, frame0_left_pose_data, _, _, _, _, _ = read_pose_data(os.path.join(dataset_folder, f'frame_0'), dataset_folder, fixed_trans_to_robot_table=fixed_trans_to_robot_table, first_frame=True)
                 update_R_delta_init(frame0_pose_data[:3], frame0_pose_data[3:7])
 
                 # Get start and end frame numbers
@@ -183,7 +187,7 @@ def process_hdf5(output_hdf5_file, dataset_folders, action_gap, num_points_to_sa
                     frame_path = os.path.join(dataset_folder, frame_folder)
 
                     # load hand pose data
-                    pose_data, left_pose_data, cam_data, glove_data, left_glove_data, right_hand_points, left_hand_points = read_pose_data(frame_path, dataset_folder)
+                    pose_data, left_pose_data, cam_data, glove_data, left_glove_data, right_hand_points, left_hand_points = read_pose_data(frame_path, dataset_folder, fixed_trans_to_robot_table=fixed_trans_to_robot_table)
                     poses.append(pose_data)
                     poses_left.append(left_pose_data)
 
@@ -208,9 +212,8 @@ def process_hdf5(output_hdf5_file, dataset_folders, action_gap, num_points_to_sa
                     rgbd = o3d.geometry.RGBDImage.create_from_color_and_depth(color_image_o3d, filtered_depth_image, depth_trunc=4.0, convert_rgb_to_intensity=False)
 
                     pose_4x4 = np.loadtxt(os.path.join(dataset_folder, frame_folder, "pose.txt"))
-                    between_cam = np.eye(4)
-                    between_cam[:3, :3] = np.array([[1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, -1.0]])
-                    between_cam[:3, 3] = np.array([0.0, 0.076, 0.0])
+                    pose_4x4[:3, 3] += fixed_trans_to_robot_table.T
+
                     corrected_pose = pose_4x4 @ between_cam
                     pcd = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd, o3d_depth_intrinsic)
                     pcd.transform(corrected_pose)
