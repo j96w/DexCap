@@ -87,6 +87,8 @@ python replay_human_traj_vis.py --directory save_data_scenario_1
 ```
 A point cloud visualizer based on Open3D will show up and you can see the captured hand motion at the same time like the following
 
+<img src="assets/replay.gif" width=100%>
+
 (Optional) We also provide an interface for correcting initial drifts of the SLAM if needed. Run the following script and use the numeric keypad of the keyboard to correct the drifts.
 The correction will be applied to the entire video.
 ```	
@@ -98,6 +100,8 @@ align with the robot table frame. This process usually take < 10 seconds and onl
 ```	
 python transform_to_robot_table.py --directory save_data_scenario_1
 ```
+
+<img src="assets/transfer.gif" width=100%>
 
 Finally, we can cut the whole data episode into several task demos with the following script.
 ```	
@@ -115,6 +119,7 @@ This process will use inverse kinematics (based on PyBullet) to match the robot 
 in the camera view, a point cloud mesh of the robot hand built with forward kinematics is added to the pointcloud observation as is shown in the following video. 
 The redundant point clouds (background, table surface) are also removed.
 
+<img src="assets/dataset.gif" width=100%>
 
 You can download our processed dataset from [Link]().
 

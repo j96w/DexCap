@@ -41,7 +41,7 @@ robot_table_corner_points = np.array([
 ])
 
 # robot table sweep list
-table_sweep_list = [0.025, 0.026, 0.027, 0.028, 0.029, 0.03]
+table_sweep_list = [0.020, 0.021, 0.022, 0.023, 0.024, 0.025]
 
 # depth camera intrinsic
 o3d_depth_intrinsic = o3d.camera.PinholeCameraIntrinsic(
