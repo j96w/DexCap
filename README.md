@@ -6,22 +6,24 @@
 ## Table of Content
 - [Overview](#overview)
 - [Installation](#installation)
-- [Data Collection](#collection)
-- [Data Processing](#processing)
-- [Building Training Dataset](#dataset)
-- [Training Policy](#training)
+- [Data Collection](#data-collection)
+- [Data Processing](#data-processing)
+- [Building Training Dataset](#building-training-dataset)
+- [Training Policy](#training-policy)
 - [Inference](#inference)
 - [Acknowledgement](#acknowledgement)
-- [Citations](#citations)
+- [Citation](#citation)
 - [License](#license)
 
 -------
 ## Overview
 
-This repository is the implementation code of "DexCap: Scalable and Portable Mocap Data Collection System for Dexterous Manipulation"([Paper](), [Website](https://dex-cap.github.io/)) by Wang et al. at [Stanford The Movement Lab](https://tml.stanford.edu/) and [Stanford Vision and Learning Lab](http://svl.stanford.edu/).
+This repository is the implementation code of "DexCap: Scalable and Portable Mocap Data Collection System for Dexterous Manipulation"([Paper](), 
+[Website](https://dex-cap.github.io/)) by Wang et al. at [The Movement Lab](https://tml.stanford.edu/) 
+and [Stanford Vision and Learning Lab](http://svl.stanford.edu/).
 
-In this repo, we provide our full implementation code of [Data collection](#collection), [Data processing](#processing), [Building dataset](#dataset), [Training policy](#training) 
-and [Inference](#inference).
+In this repo, we provide our full implementation code of [Data collection](#data-collection), [Data processing](#data-processing), 
+[Building dataset](#building-training-dataset), [Training policy](#training-policy) and [Inference](#inference).
 
 -------
 ## Installation
@@ -106,7 +108,7 @@ You can download our raw dataset from [Link](). And use `replay_human_traj_vis.p
 
 -------
 ## Building Training Dataset
-After collecting and processing the raw data, we can now transfer the data to the workstation and use the following script to generate a `hdf5` dataset file in [robomimic]() format for training.
+After collecting and processing the raw data, we can now transfer the data to the workstation and use the following script to generate a `hdf5` dataset file in [robomimic](https://github.com/ARISE-Initiative/robomimic) format for training.
 ```	
 python demo_create_hdf5.py
 ```
@@ -124,7 +126,7 @@ After building the `hdf5` dataset, we can start a policy training with the follo
 cd DexCap/STEP3_train_policy/robomimic
 python scripts/train.py --config training_config/[NAME_OF_CONFIG].json
 ```
-The default training config will train a point cloud-based [Diffusion Policy](), which takes the point cloud observation from the chest camera (transformed to the fixed world frame) 
+The default training config will train a point cloud-based Diffusion Policy, which takes the point cloud observation from the chest camera (transformed to the fixed world frame) 
 as input and generate a sequence (20 steps) of actions for both robot hands and arms (46 dimenstion in total). For more details of the algorithm, please check out our study paper.
 
 -------
@@ -137,12 +139,12 @@ python scripts/inference.py --
 
 -------
 ## Acknowledgement
-- Our policy training is implemented based on [robomimic](https://github.com/ARISE-Initiative/robomimic), [Diffusion Policy]().
-- The robot arm controller we use is [Deoxys]().
-- The robot LEAP hand controller is based on [Leap]().
+- Our policy training is implemented based on [robomimic](https://github.com/ARISE-Initiative/robomimic), [Diffusion Policy](https://github.com/real-stanford/diffusion_policy).
+- The robot arm controller is based on [Deoxys](https://github.com/UT-Austin-RPL/deoxys_control).
+- The robot LEAP hand controller is based on [LEAP_Hand_API](https://github.com/leap-hand/LEAP_Hand_API).
 
 -------
-## Citations
+## Citation
 ```
 @article{wang2024dexcap,
   title={},
