@@ -1,7 +1,7 @@
 {
     "algo_name": "diffusion_policy",
     "experiment": {
-        "name": "diffusion_policy_pcd_wiping_1-14",
+        "name": "diffusion_policy_pcd_packaging_1-20",
         "validate": false,
         "logging": {
             "terminal_output_to_txt": true,
@@ -45,7 +45,7 @@
     "train": {
         "data": [
             {
-                "path": "[DATASET_ROOT_PATH]/hand_wiping_1-14_5actiongap_10000points.hdf5"
+                "path": "[DATASET_ROOT_PATH]/hand_packaging_1-20_5actiongap_10000points.hdf5"
             }
         ],
         "output_dir": "trained_models",
