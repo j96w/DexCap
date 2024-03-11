@@ -10,7 +10,6 @@
 - [Data Processing](#data-processing)
 - [Building Training Dataset](#building-training-dataset)
 - [Training Policy](#training-policy)
-- [Inference](#inference)
 - [Acknowledgement](#acknowledgement)
 - [Citation](#citation)
 - [License](#license)
@@ -23,7 +22,7 @@ This repository is the implementation code of "DexCap: Scalable and Portable Moc
 and [Stanford Vision and Learning Lab](http://svl.stanford.edu/).
 
 In this repo, we provide our full implementation code of [Data collection](#data-collection), [Data processing](#data-processing), 
-[Building dataset](#building-training-dataset), [Training policy](#training-policy) and [Inference](#inference).
+[Building dataset](#building-training-dataset) and [Training policy](#training-policy).
 
 -------
 ## Installation
@@ -128,14 +127,6 @@ python scripts/train.py --config training_config/[NAME_OF_CONFIG].json
 ```
 The default training config will train a point cloud-based Diffusion Policy, which takes the point cloud observation from the chest camera (transformed to the fixed world frame) 
 as input and generate a sequence (20 steps) of actions for both robot hands and arms (46 dimenstion in total). For more details of the algorithm, please check out our study paper.
-
--------
-## Inference
-The inference script will vary based on the controller of the robot arm. In this repo, we provide our script as an example
-```
-cd DexCap/STEP3_train_policy/robomimic
-python scripts/inference.py --
-```
 
 -------
 ## Acknowledgement
