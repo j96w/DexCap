@@ -14,3 +14,7 @@ torchvision
 diffusers==0.11.1
 einops
 scipy
+open3d
+pybullet==3.2.6
+transforms3d
+yourdfpy
