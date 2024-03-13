@@ -139,10 +139,10 @@ The default training config will train a point cloud-based Diffusion Policy, whi
 ## BibTeX
 ```
 @article{wang2024dexcap,
-  title={},
-  author={},
-  journal={},
-  year={}
+  title = {DexCap: Scalable and Portable Mocap Data Collection System for Dexterous Manipulation},
+  author = {Wang, Chen and Shi, Haochen and Wang, Weizhuo and Zhang, Ruohan and Fei-Fei, Li and Liu, C. Karen},
+  journal = {arXiv preprint arXiv:2403.07788},
+  year = {2024}
 }
 ```
 
