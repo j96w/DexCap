@@ -17,7 +17,7 @@
 -------
 ## Overview
 
-This repository is the implementation code for "DexCap: Scalable and Portable Mocap Data Collection System for Dexterous Manipulation" ([Paper](), 
+This repository is the implementation code for "DexCap: Scalable and Portable Mocap Data Collection System for Dexterous Manipulation" ([Paper](https://arxiv.org/abs/2403.07788), 
 [Website](https://dex-cap.github.io/)) by Wang et al. at [The Movement Lab](https://tml.stanford.edu/) 
 and [Stanford Vision and Learning Lab](http://svl.stanford.edu/).
 
@@ -106,7 +106,7 @@ Finally, cut the whole data episode into several task demos with the following s
 ```	
 python demo_clipping_3d.py --directory save_data_scenario_1
 ```
-You can download our raw dataset from [Link](). And use `replay_human_traj_vis.py` to visualize the data.
+You can download our raw dataset from [Link](https://drive.google.com/drive/folders/1VG8Dz_f5tfjf8w7tBG1Y2AAZ2gNv-RjT?usp=sharing). And use `replay_human_traj_vis.py` to visualize the data.
 
 -------
 ## Building Training Dataset
@@ -118,7 +118,7 @@ This process will use inverse kinematics (based on PyBullet) to match the robot 
 
 <img src="assets/dataset.gif" width=100%>
 
-You can download our processed dataset from [Link]().
+You can download our processed dataset from [Link](https://drive.google.com/drive/folders/1VG8Dz_f5tfjf8w7tBG1Y2AAZ2gNv-RjT?usp=sharing).
 
 -------
 ## Training Policy
