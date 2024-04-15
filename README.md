@@ -106,7 +106,7 @@ Finally, cut the whole data episode into several task demos with the following s
 ```	
 python demo_clipping_3d.py --directory save_data_scenario_1
 ```
-You can download our raw dataset from [Link](https://drive.google.com/drive/folders/1VG8Dz_f5tfjf8w7tBG1Y2AAZ2gNv-RjT?usp=sharing). And use `replay_human_traj_vis.py` to visualize the data.
+You can download our raw dataset from [Link](https://huggingface.co/datasets/chenwangj/DexCap-Data). And use `replay_human_traj_vis.py` to visualize the data.
 
 -------
 ## Building Training Dataset
@@ -118,7 +118,7 @@ This process will use inverse kinematics (based on PyBullet) to match the robot 
 
 <img src="assets/dataset.gif" width=100%>
 
-You can download our processed dataset from [Link](https://drive.google.com/drive/folders/1VG8Dz_f5tfjf8w7tBG1Y2AAZ2gNv-RjT?usp=sharing).
+You can download our processed dataset from [Link](https://huggingface.co/datasets/chenwangj/DexCap-Data).
 
 -------
 ## Training Policy
