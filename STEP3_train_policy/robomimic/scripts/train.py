@@ -179,7 +179,7 @@ def train(config, device, auto_remove_exp=False, resume=None):
     if resume is not None:
         ckpt_dict = maybe_dict_from_checkpoint(ckpt_path=resume, ckpt_dict=None)
         model.deserialize(ckpt_dict["model"])
-        print("pretrained weights loaded!!!!!!")
+        print("pretrained weights loaded!")
     
     # save the config as a json file
     with open(os.path.join(log_dir, '..', 'config.json'), 'w') as outfile:
@@ -599,7 +599,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--resume",
         type=str,
-        help="(optional) name of algorithm to run. Only needs to be provided if --config is not provided",
+        help="(optional) checkpoint to load and resume training/validation",
     )
 
     # Experiment Name (for tensorboard, saving models, etc.)

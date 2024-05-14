@@ -36,6 +36,7 @@ conda env create -n mocap -f env_nuc_windows.yml
 The second step is to install and build environments for the Ubuntu workstation, which could also be a headless server for dataset building and training. Simply follow:
 ```	
 conda create -n dexcap python=3.8
+conda activate dexcap
 cd DexCap/install
 pip install -r env_ws_requirements.txt
 cd STEP3_train_policy
