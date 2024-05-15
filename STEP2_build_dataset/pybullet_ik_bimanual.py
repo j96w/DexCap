@@ -13,34 +13,32 @@ class LeapPybulletIK():
         p.setAdditionalSearchPath(pybullet_data.getDataPath())
         p.loadURDF("plane.urdf", [0, 0, -0.3])
 
-        # load right leap hand
+        # load right LEAP hand
         self.LeapId = p.loadURDF(
             "leap_hand_mesh/robot_pybullet.urdf",
             [0.0, 0.0, 0.0],
             rotate_quaternion(0.0, 0.0, 0.0),
         )
 
-        self.leap_center_offset = [0.18, 0.03, 0.0]
-        self.leapEndEffectorIndex = [3, 4, 8, 9, 13, 14, 18, 19]
-
-        # load left leap hand
-        self.left_offset = 1.0
+        # load left LEAP hand
+        self.left_offset = 1.0 # for visualization, separate left and right hand
         self.LeapId_2 = p.loadURDF(
             "leap_hand_mesh/robot_pybullet.urdf",
             [0.0, self.left_offset, 0.0],
             rotate_quaternion(0.0, 0.0, 0.0),
         )
-        self.leap_center_offset_2 = [0.18, 0.03, 0.0]
-        self.leapEndEffectorIndex_2 = [3, 4, 8, 9, 13, 14, 18, 19]
 
-        self.glove_to_leap_mapping_scale = 1.0
+        self.leap_center_offset = [0.18, 0.03, 0.0] # Since the root of the LEAP hand URDF is not at the palm's root (it is at the root of the index finger), we set an offset to correct the root location
+        self.leapEndEffectorIndex = [4, 9, 14, 19] # fingertip joint index
+        self.fingertip_offset = np.array([0.1, 0.0, -0.08]) # Since the root of the fingertip mesh in URDF is not at the tip (it is at the right lower part of the fingertip mesh), we set an offset to correct the fingertip location
+        self.thumb_offset = np.array([0.1, 0.0, -0.06]) # Same reason for the thumb tip
+
         self.numJoints = p.getNumJoints(self.LeapId)
-
-        self.create_target_vis()
-
-        p.setGravity(0, 0, 0)
-        useRealTimeSimulation = 0
-        p.setRealTimeSimulation(useRealTimeSimulation)
+        self.hand_lower_limits, self.hand_upper_limits, self.hand_joint_ranges = self.get_joint_limits(self.LeapId) # get the joint limits of LEAP hand
+        self.HAND_Q = np.array([np.pi / 6, -np.pi / 6, np.pi / 3, np.pi / 3,
+                               np.pi / 6, 0.0, np.pi / 3, np.pi / 3,
+                               np.pi / 6, np.pi / 6, np.pi / 3, np.pi / 3,
+                               np.pi / 6, np.pi / 6, np.pi / 3, np.pi / 3]) # To avoid self-collision of LEAP hand, we define a reference pose for null space IK
 
         # load URDF of left and right hand for generating pointcloud during forward kinematics
         self.urdf_dict = {}
@@ -54,6 +52,24 @@ class LeapPybulletIK():
             "scene": self.Leap_urdf_2.scene,
             "mesh_list": self._load_meshes(self.Leap_urdf_2.scene),
         }
+
+        self.create_target_vis()
+        p.setGravity(0, 0, 0)
+        useRealTimeSimulation = 0
+        p.setRealTimeSimulation(useRealTimeSimulation)
+
+    def get_joint_limits(self, robot):
+        joint_lower_limits = []
+        joint_upper_limits = []
+        joint_ranges = []
+        for i in range(p.getNumJoints(robot)):
+            joint_info = p.getJointInfo(robot, i)
+            if joint_info[2] == p.JOINT_FIXED:
+                continue
+            joint_lower_limits.append(joint_info[8])
+            joint_upper_limits.append(joint_info[9])
+            joint_ranges.append(joint_info[9] - joint_info[8])
+        return joint_lower_limits, joint_upper_limits, joint_ranges
 
     def _load_meshes(self, scene):
         mesh_list = []
@@ -116,11 +132,11 @@ class LeapPybulletIK():
 
     def create_target_vis(self):
 
-        # load balls
+        # load balls (used for visualization)
         small_ball_radius = 0.001
-        small_ball_shape = p.createCollisionShape(p.GEOM_SPHERE, radius=small_ball_radius)
+        small_ball_shape = p.createCollisionShape(p.GEOM_SPHERE, radius=small_ball_radius) # small ball used to indicate fingertip current position
         ball_radius = 0.02
-        ball_shape = p.createCollisionShape(p.GEOM_SPHERE, radius=ball_radius)
+        ball_shape = p.createCollisionShape(p.GEOM_SPHERE, radius=ball_radius) # large ball used to indicate fingertip goal position
         baseMass = 0.001
         basePosition = [0, 0, 0]
 
@@ -134,14 +150,6 @@ class LeapPybulletIK():
         self.ball8Mbt = p.createMultiBody(baseMass=baseMass, baseCollisionShapeIndex=small_ball_shape, basePosition=basePosition)
         self.ball9Mbt = p.createMultiBody(baseMass=baseMass, baseCollisionShapeIndex=small_ball_shape, basePosition=basePosition)
         self.ball10Mbt = p.createMultiBody(baseMass=baseMass, baseCollisionShapeIndex=small_ball_shape, basePosition=basePosition)
-        self.ball21Mbt = p.createMultiBody(baseMass=baseMass, baseCollisionShapeIndex=small_ball_shape, basePosition=basePosition) # for middle finger joints
-        self.ball22Mbt = p.createMultiBody(baseMass=baseMass, baseCollisionShapeIndex=small_ball_shape, basePosition=basePosition)
-        self.ball23Mbt = p.createMultiBody(baseMass=baseMass, baseCollisionShapeIndex=small_ball_shape, basePosition=basePosition)
-        self.ball24Mbt = p.createMultiBody(baseMass=baseMass, baseCollisionShapeIndex=small_ball_shape, basePosition=basePosition)
-        self.ball25Mbt = p.createMultiBody(baseMass=baseMass, baseCollisionShapeIndex=small_ball_shape, basePosition=basePosition)
-        self.ball26Mbt = p.createMultiBody(baseMass=baseMass, baseCollisionShapeIndex=small_ball_shape, basePosition=basePosition)
-        self.ball27Mbt = p.createMultiBody(baseMass=baseMass, baseCollisionShapeIndex=small_ball_shape, basePosition=basePosition)
-        self.ball28Mbt = p.createMultiBody(baseMass=baseMass, baseCollisionShapeIndex=small_ball_shape, basePosition=basePosition)
 
         self.ball11Mbt = p.createMultiBody(baseMass=baseMass, baseCollisionShapeIndex=ball_shape, basePosition=basePosition) # for base and finger tip joints
         self.ball12Mbt = p.createMultiBody(baseMass=baseMass, baseCollisionShapeIndex=ball_shape, basePosition=basePosition)
@@ -153,15 +161,6 @@ class LeapPybulletIK():
         self.ball18Mbt = p.createMultiBody(baseMass=baseMass, baseCollisionShapeIndex=small_ball_shape, basePosition=basePosition)
         self.ball19Mbt = p.createMultiBody(baseMass=baseMass, baseCollisionShapeIndex=small_ball_shape, basePosition=basePosition)
         self.ball20Mbt = p.createMultiBody(baseMass=baseMass, baseCollisionShapeIndex=small_ball_shape, basePosition=basePosition)
-        self.ball31Mbt = p.createMultiBody(baseMass=baseMass, baseCollisionShapeIndex=small_ball_shape, basePosition=basePosition) # for middle finger joints
-        self.ball32Mbt = p.createMultiBody(baseMass=baseMass, baseCollisionShapeIndex=small_ball_shape, basePosition=basePosition)
-        self.ball33Mbt = p.createMultiBody(baseMass=baseMass, baseCollisionShapeIndex=small_ball_shape, basePosition=basePosition)
-        self.ball34Mbt = p.createMultiBody(baseMass=baseMass, baseCollisionShapeIndex=small_ball_shape, basePosition=basePosition)
-        self.ball35Mbt = p.createMultiBody(baseMass=baseMass, baseCollisionShapeIndex=small_ball_shape, basePosition=basePosition)
-        self.ball36Mbt = p.createMultiBody(baseMass=baseMass, baseCollisionShapeIndex=small_ball_shape, basePosition=basePosition)
-        self.ball37Mbt = p.createMultiBody(baseMass=baseMass, baseCollisionShapeIndex=small_ball_shape, basePosition=basePosition)
-        self.ball38Mbt = p.createMultiBody(baseMass=baseMass, baseCollisionShapeIndex=small_ball_shape, basePosition=basePosition)
-
 
         p.changeVisualShape(self.ball1Mbt, -1, rgbaColor=[1, 0, 0, 1])  # Red
         p.changeVisualShape(self.ball2Mbt, -1, rgbaColor=[0, 1, 0, 1])  # Green
@@ -173,14 +172,6 @@ class LeapPybulletIK():
         p.changeVisualShape(self.ball8Mbt, -1, rgbaColor=[0, 1, 0, 1])  # Green
         p.changeVisualShape(self.ball9Mbt, -1, rgbaColor=[0, 0, 1, 1])  # Blue
         p.changeVisualShape(self.ball10Mbt, -1, rgbaColor=[1, 1, 0, 1])  # Yellow
-        p.changeVisualShape(self.ball21Mbt, -1, rgbaColor=[1, 0, 0, 1])  # Red
-        p.changeVisualShape(self.ball22Mbt, -1, rgbaColor=[0, 1, 0, 1])  # Green
-        p.changeVisualShape(self.ball23Mbt, -1, rgbaColor=[0, 0, 1, 1])  # Blue
-        p.changeVisualShape(self.ball24Mbt, -1, rgbaColor=[1, 1, 0, 1])  # Yellow
-        p.changeVisualShape(self.ball25Mbt, -1, rgbaColor=[1, 0, 0, 1])  # Red
-        p.changeVisualShape(self.ball26Mbt, -1, rgbaColor=[0, 1, 0, 1])  # Green
-        p.changeVisualShape(self.ball27Mbt, -1, rgbaColor=[0, 0, 1, 1])  # Blue
-        p.changeVisualShape(self.ball28Mbt, -1, rgbaColor=[1, 1, 0, 1])  # Yellow
 
         p.changeVisualShape(self.ball11Mbt, -1, rgbaColor=[1, 0, 0, 1])  # Red
         p.changeVisualShape(self.ball12Mbt, -1, rgbaColor=[0, 1, 0, 1])  # Green
@@ -192,14 +183,6 @@ class LeapPybulletIK():
         p.changeVisualShape(self.ball18Mbt, -1, rgbaColor=[0, 1, 0, 1])  # Green
         p.changeVisualShape(self.ball19Mbt, -1, rgbaColor=[0, 0, 1, 1])  # Blue
         p.changeVisualShape(self.ball20Mbt, -1, rgbaColor=[1, 1, 0, 1])  # Yellow
-        p.changeVisualShape(self.ball31Mbt, -1, rgbaColor=[1, 0, 0, 1])  # Red
-        p.changeVisualShape(self.ball32Mbt, -1, rgbaColor=[0, 1, 0, 1])  # Green
-        p.changeVisualShape(self.ball33Mbt, -1, rgbaColor=[0, 0, 1, 1])  # Blue
-        p.changeVisualShape(self.ball34Mbt, -1, rgbaColor=[1, 1, 0, 1])  # Yellow
-        p.changeVisualShape(self.ball35Mbt, -1, rgbaColor=[1, 0, 0, 1])  # Red
-        p.changeVisualShape(self.ball36Mbt, -1, rgbaColor=[0, 1, 0, 1])  # Green
-        p.changeVisualShape(self.ball37Mbt, -1, rgbaColor=[0, 0, 1, 1])  # Blue
-        p.changeVisualShape(self.ball38Mbt, -1, rgbaColor=[1, 1, 0, 1])  # Yellow
 
         no_collision_group = 0
         no_collision_mask = 0
@@ -213,14 +196,6 @@ class LeapPybulletIK():
         p.setCollisionFilterGroupMask(self.ball8Mbt, -1, no_collision_group, no_collision_mask)
         p.setCollisionFilterGroupMask(self.ball9Mbt, -1, no_collision_group, no_collision_mask)
         p.setCollisionFilterGroupMask(self.ball10Mbt, -1, no_collision_group, no_collision_mask)
-        p.setCollisionFilterGroupMask(self.ball21Mbt, -1, no_collision_group, no_collision_mask)
-        p.setCollisionFilterGroupMask(self.ball22Mbt, -1, no_collision_group, no_collision_mask)
-        p.setCollisionFilterGroupMask(self.ball23Mbt, -1, no_collision_group, no_collision_mask)
-        p.setCollisionFilterGroupMask(self.ball24Mbt, -1, no_collision_group, no_collision_mask)
-        p.setCollisionFilterGroupMask(self.ball25Mbt, -1, no_collision_group, no_collision_mask)
-        p.setCollisionFilterGroupMask(self.ball26Mbt, -1, no_collision_group, no_collision_mask)
-        p.setCollisionFilterGroupMask(self.ball27Mbt, -1, no_collision_group, no_collision_mask)
-        p.setCollisionFilterGroupMask(self.ball28Mbt, -1, no_collision_group, no_collision_mask)
 
         p.setCollisionFilterGroupMask(self.ball11Mbt, -1, no_collision_group, no_collision_mask)
         p.setCollisionFilterGroupMask(self.ball12Mbt, -1, no_collision_group, no_collision_mask)
@@ -232,14 +207,6 @@ class LeapPybulletIK():
         p.setCollisionFilterGroupMask(self.ball18Mbt, -1, no_collision_group, no_collision_mask)
         p.setCollisionFilterGroupMask(self.ball19Mbt, -1, no_collision_group, no_collision_mask)
         p.setCollisionFilterGroupMask(self.ball20Mbt, -1, no_collision_group, no_collision_mask)
-        p.setCollisionFilterGroupMask(self.ball31Mbt, -1, no_collision_group, no_collision_mask)
-        p.setCollisionFilterGroupMask(self.ball32Mbt, -1, no_collision_group, no_collision_mask)
-        p.setCollisionFilterGroupMask(self.ball33Mbt, -1, no_collision_group, no_collision_mask)
-        p.setCollisionFilterGroupMask(self.ball34Mbt, -1, no_collision_group, no_collision_mask)
-        p.setCollisionFilterGroupMask(self.ball35Mbt, -1, no_collision_group, no_collision_mask)
-        p.setCollisionFilterGroupMask(self.ball36Mbt, -1, no_collision_group, no_collision_mask)
-        p.setCollisionFilterGroupMask(self.ball37Mbt, -1, no_collision_group, no_collision_mask)
-        p.setCollisionFilterGroupMask(self.ball38Mbt, -1, no_collision_group, no_collision_mask)
 
     def update_target_vis(self, rightHand_rot, rightHandThumb_pos, rightHandIndex_pos, rightHandMiddle_pos, rightHandRing_pos):
         p.resetBasePositionAndOrientation(
@@ -274,11 +241,8 @@ class LeapPybulletIK():
             rightHand_rot,
         )
 
-        offset = np.array([0.1, 0.0, -0.08])
-        offset = rotate_vector_by_quaternion_using_matrix(offset, rightHand_rot)
-        thumb_offset = np.array([0.1, 0.0, -0.06])
-        thumb_offset = rotate_vector_by_quaternion_using_matrix(thumb_offset, rightHand_rot)
-
+        offset = rotate_vector_by_quaternion_using_matrix(self.fingertip_offset, rightHand_rot)
+        thumb_offset = rotate_vector_by_quaternion_using_matrix(self.thumb_offset, rightHand_rot)
 
         rightHandThumb_pos += thumb_offset
         _, current_orientation = p.getBasePositionAndOrientation(self.ball4Mbt)
@@ -303,62 +267,9 @@ class LeapPybulletIK():
 
         return rightHandThumb_pos, rightHandIndex_pos, rightHandMiddle_pos, rightHandRing_pos
 
-    def update_middle_target_vis(self, rightHand_rot, rightHandThumb_middle_pos, rightHandIndex_middle_pos, rightHandMiddle_middle_pos, rightHandRing_middle_pos):
-
-        p.resetBasePositionAndOrientation(
-            self.ball23Mbt,
-            p.getLinkState(self.LeapId, 3)[0],
-            rightHand_rot,
-        )
-        p.resetBasePositionAndOrientation(
-            self.ball21Mbt,
-            p.getLinkState(self.LeapId, 8)[0],
-            rightHand_rot,
-        )
-        p.resetBasePositionAndOrientation(
-            self.ball22Mbt,
-            p.getLinkState(self.LeapId, 13)[0],
-            rightHand_rot,
-        )
-        p.resetBasePositionAndOrientation(
-            self.ball24Mbt,
-            p.getLinkState(self.LeapId, 18)[0],
-            rightHand_rot,
-        )
-
-        offset = np.array([0.07, 0.02, -0.05])
-        offset = rotate_vector_by_quaternion_using_matrix(offset, rightHand_rot)
-        offset_scale = 1.6
-
-        thumb_offset = np.array([0.01, 0.0, -0.03])
-        thumb_offset = rotate_vector_by_quaternion_using_matrix(thumb_offset, rightHand_rot)
-
-        rightHandThumb_middle_pos = np.array(rightHandThumb_middle_pos) * offset_scale + thumb_offset
-        _, current_orientation = p.getBasePositionAndOrientation(self.ball28Mbt)
-        p.resetBasePositionAndOrientation(
-            self.ball28Mbt, rightHandThumb_middle_pos, current_orientation
-        )
-        rightHandIndex_middle_pos = np.array(rightHandIndex_middle_pos) * offset_scale + offset
-        _, current_orientation = p.getBasePositionAndOrientation(self.ball27Mbt)
-        p.resetBasePositionAndOrientation(
-            self.ball27Mbt, rightHandIndex_middle_pos, current_orientation
-        )
-        rightHandMiddle_middle_pos = np.array(rightHandMiddle_middle_pos) * offset_scale + offset
-        _, current_orientation = p.getBasePositionAndOrientation(self.ball25Mbt)
-        p.resetBasePositionAndOrientation(
-            self.ball25Mbt, rightHandMiddle_middle_pos, current_orientation
-        )
-        rightHandRing_middle_pos = np.array(rightHandRing_middle_pos) * offset_scale + offset
-        _, current_orientation = p.getBasePositionAndOrientation(self.ball26Mbt)
-        p.resetBasePositionAndOrientation(
-            self.ball26Mbt, rightHandRing_middle_pos, current_orientation
-        )
-
-        return rightHandThumb_middle_pos, rightHandIndex_middle_pos, rightHandMiddle_middle_pos, rightHandRing_middle_pos
-
     def update_target_vis_left(self, leftHand_rot, leftHandThumb_pos, leftHandIndex_pos, leftHandMiddle_pos, leftHandRing_pos):
 
-        after_left_offset = rotate_vector_by_quaternion_using_matrix(self.leap_center_offset_2, leftHand_rot)
+        after_left_offset = rotate_vector_by_quaternion_using_matrix(self.leap_center_offset, leftHand_rot)
         after_left_offset[1] += self.left_offset
         p.resetBasePositionAndOrientation(
             self.ball16Mbt,
@@ -397,10 +308,8 @@ class LeapPybulletIK():
         leftHandMiddle_pos[1] += self.left_offset
         leftHandRing_pos[1] += self.left_offset
 
-        offset = np.array([0.1, 0.0, -0.08])
-        offset = rotate_vector_by_quaternion_using_matrix(offset, leftHand_rot)
-        thumb_offset = np.array([0.1, 0.0, -0.06])
-        thumb_offset = rotate_vector_by_quaternion_using_matrix(thumb_offset, leftHand_rot)
+        offset = rotate_vector_by_quaternion_using_matrix(self.fingertip_offset, leftHand_rot)
+        thumb_offset = rotate_vector_by_quaternion_using_matrix(self.thumb_offset, leftHand_rot)
 
         leftHandThumb_pos += thumb_offset
         _, current_orientation = p.getBasePositionAndOrientation(self.ball14Mbt)
@@ -424,63 +333,6 @@ class LeapPybulletIK():
         )
 
         return leftHandThumb_pos, leftHandIndex_pos, leftHandMiddle_pos, leftHandRing_pos
-
-    def update_middle_target_vis_left(self, leftHand_rot, leftHandThumb_middle_pos, leftHandIndex_middle_pos, leftHandMiddle_middle_pos, leftHandRing_middle_pos):
-
-        p.resetBasePositionAndOrientation(
-            self.ball33Mbt,
-            p.getLinkState(self.LeapId_2, 12)[0],
-            leftHand_rot,
-        )
-        p.resetBasePositionAndOrientation(
-            self.ball31Mbt,
-            p.getLinkState(self.LeapId_2, 7)[0],
-            leftHand_rot,
-        )
-        p.resetBasePositionAndOrientation(
-            self.ball32Mbt,
-            p.getLinkState(self.LeapId_2, 2)[0],
-            leftHand_rot,
-        )
-        p.resetBasePositionAndOrientation(
-            self.ball34Mbt,
-            p.getLinkState(self.LeapId_2, 18)[0],
-            leftHand_rot,
-        )
-
-        offset = np.array([0.07, 0.02, -0.05])
-        offset = rotate_vector_by_quaternion_using_matrix(offset, leftHand_rot)
-        offset_scale = 1.6
-
-        thumb_offset = np.array([0.01, 0.0, -0.03])
-        thumb_offset = rotate_vector_by_quaternion_using_matrix(thumb_offset, leftHand_rot)
-
-        leftHandThumb_middle_pos = np.array(leftHandThumb_middle_pos) * offset_scale + thumb_offset
-        leftHandThumb_middle_pos[1] += self.left_offset
-        _, current_orientation = p.getBasePositionAndOrientation(self.ball14Mbt)
-        p.resetBasePositionAndOrientation(
-            self.ball38Mbt, leftHandThumb_middle_pos, current_orientation
-        )
-        leftHandIndex_middle_pos = np.array(leftHandIndex_middle_pos) * offset_scale + offset
-        leftHandIndex_middle_pos[1] += self.left_offset
-        _, current_orientation = p.getBasePositionAndOrientation(self.ball3Mbt)
-        p.resetBasePositionAndOrientation(
-            self.ball37Mbt, leftHandIndex_middle_pos, current_orientation
-        )
-        leftHandMiddle_middle_pos = np.array(leftHandMiddle_middle_pos) * offset_scale + offset
-        leftHandMiddle_middle_pos[1] += self.left_offset
-        _, current_orientation = p.getBasePositionAndOrientation(self.ball1Mbt)
-        p.resetBasePositionAndOrientation(
-            self.ball35Mbt, leftHandMiddle_middle_pos, current_orientation
-        )
-        leftHandRing_middle_pos = np.array(leftHandRing_middle_pos) * offset_scale + offset
-        leftHandRing_middle_pos[1] += self.left_offset
-        _, current_orientation = p.getBasePositionAndOrientation(self.ball2Mbt)
-        p.resetBasePositionAndOrientation(
-            self.ball36Mbt, leftHandRing_middle_pos, current_orientation
-        )
-
-        return leftHandThumb_middle_pos, leftHandIndex_middle_pos, leftHandMiddle_middle_pos, leftHandRing_middle_pos
 
     def rest_target_vis(self):
         p.resetBaseVelocity(self.ball1Mbt, [0, 0, 0], [0, 0, 0])
@@ -511,42 +363,25 @@ class LeapPybulletIK():
         wxyz_input_mat = quat2mat(wxyz_input_quat)
 
         leftHand_pos = left_hand_pos[0]
-        leftHandThumb_pos = (left_hand_pos[4] - leftHand_pos) * self.glove_to_leap_mapping_scale
-        leftHandIndex_pos = (left_hand_pos[8] - leftHand_pos) * self.glove_to_leap_mapping_scale
-        leftHandMiddle_pos = (left_hand_pos[12] - leftHand_pos) * self.glove_to_leap_mapping_scale
-        leftHandRing_pos = (left_hand_pos[16] - leftHand_pos) * self.glove_to_leap_mapping_scale
-
-        leftHandThumb_middle_pos = (left_hand_pos[3] - leftHand_pos) * self.glove_to_leap_mapping_scale
-        leftHandIndex_middle_pos = (left_hand_pos[6] - leftHand_pos) * self.glove_to_leap_mapping_scale
-        leftHandMiddle_middle_pos = (left_hand_pos[10] - leftHand_pos) * self.glove_to_leap_mapping_scale
-        leftHandRing_middle_pos = (left_hand_pos[14] - leftHand_pos) * self.glove_to_leap_mapping_scale
+        leftHandThumb_pos = (left_hand_pos[4] - leftHand_pos)
+        leftHandIndex_pos = (left_hand_pos[8] - leftHand_pos)
+        leftHandMiddle_pos = (left_hand_pos[12] - leftHand_pos)
+        leftHandRing_pos = (left_hand_pos[16] - leftHand_pos)
 
         leftHandThumb_pos = leftHandThumb_pos @ wxyz_input_mat
         leftHandIndex_pos = leftHandIndex_pos @ wxyz_input_mat
         leftHandMiddle_pos = leftHandMiddle_pos @ wxyz_input_mat
         leftHandRing_pos = leftHandRing_pos @ wxyz_input_mat
-        leftHandThumb_middle_pos = leftHandThumb_middle_pos @ wxyz_input_mat
-        leftHandIndex_middle_pos = leftHandIndex_middle_pos @ wxyz_input_mat
-        leftHandMiddle_middle_pos = leftHandMiddle_middle_pos @ wxyz_input_mat
-        leftHandRing_middle_pos = leftHandRing_middle_pos @ wxyz_input_mat
 
         leftHandThumb_pos[0] *= -1.0
         leftHandIndex_pos[0] *= -1.0
         leftHandMiddle_pos[0] *= -1.0
         leftHandRing_pos[0] *= -1.0
-        leftHandThumb_middle_pos[0] *= -1.0
-        leftHandIndex_middle_pos[0] *= -1.0
-        leftHandMiddle_middle_pos[0] *= -1.0
-        leftHandRing_middle_pos[0] *= -1.0
 
         leftHandThumb_pos = leftHandThumb_pos @ wxyz_input_mat.T
         leftHandIndex_pos = leftHandIndex_pos @ wxyz_input_mat.T
         leftHandMiddle_pos = leftHandMiddle_pos @ wxyz_input_mat.T
         leftHandRing_pos = leftHandRing_pos @ wxyz_input_mat.T
-        leftHandThumb_middle_pos = leftHandThumb_middle_pos @ wxyz_input_mat.T
-        leftHandIndex_middle_pos = leftHandIndex_middle_pos @ wxyz_input_mat.T
-        leftHandMiddle_middle_pos = leftHandMiddle_middle_pos @ wxyz_input_mat.T
-        leftHandRing_middle_pos = leftHandRing_middle_pos @ wxyz_input_mat.T
 
         # transform left hand orientation
         leftHand_rot = left_hand_wrist_ori
@@ -558,30 +393,18 @@ class LeapPybulletIK():
 
         # get right hand position information including fingers
         rightHand_pos = right_hand_pos[0]
-        rightHandThumb_pos = (right_hand_pos[4] - rightHand_pos) * self.glove_to_leap_mapping_scale
-        rightHandIndex_pos = (right_hand_pos[8] - rightHand_pos) * self.glove_to_leap_mapping_scale
-        rightHandMiddle_pos = (right_hand_pos[12] - rightHand_pos) * self.glove_to_leap_mapping_scale
-        rightHandRing_pos = (right_hand_pos[16] - rightHand_pos) * self.glove_to_leap_mapping_scale
-
-        rightHandThumb_middle_pos = (right_hand_pos[3] - rightHand_pos) * self.glove_to_leap_mapping_scale
-        rightHandIndex_middle_pos = (right_hand_pos[6] - rightHand_pos) * self.glove_to_leap_mapping_scale
-        rightHandMiddle_middle_pos = (right_hand_pos[10] - rightHand_pos) * self.glove_to_leap_mapping_scale
-        rightHandRing_middle_pos = (right_hand_pos[14] - rightHand_pos) * self.glove_to_leap_mapping_scale
+        rightHandThumb_pos = (right_hand_pos[4] - rightHand_pos)
+        rightHandIndex_pos = (right_hand_pos[8] - rightHand_pos)
+        rightHandMiddle_pos = (right_hand_pos[12] - rightHand_pos)
+        rightHandRing_pos = (right_hand_pos[16] - rightHand_pos)
 
         leftHandThumb_pos, leftHandIndex_pos, leftHandMiddle_pos, leftHandRing_pos = self.post_process_rokoko_pos(leftHandThumb_pos, leftHandIndex_pos, leftHandMiddle_pos, leftHandRing_pos)
-        leftHandThumb_middle_pos, leftHandIndex_middle_pos, leftHandMiddle_middle_pos, leftHandRing_middle_pos = self.post_process_rokoko_pos(leftHandThumb_middle_pos, leftHandIndex_middle_pos, leftHandMiddle_middle_pos, leftHandRing_middle_pos)
-
         leftHandThumb_pos, leftHandIndex_pos, leftHandMiddle_pos, leftHandRing_pos = self.update_target_vis_left(leftHand_rot, leftHandThumb_pos, leftHandIndex_pos, leftHandMiddle_pos, leftHandRing_pos)
-        leftHandThumb_middle_pos, leftHandIndex_middle_pos, leftHandMiddle_middle_pos, leftHandRing_middle_pos = self.update_middle_target_vis_left(leftHand_rot, leftHandThumb_middle_pos, leftHandIndex_middle_pos, leftHandMiddle_middle_pos, leftHandRing_middle_pos)
 
         leapEndEffectorPos_2 = [
-            leftHandIndex_middle_pos,
             leftHandIndex_pos,
-            leftHandMiddle_middle_pos,
             leftHandMiddle_pos,
-            leftHandRing_middle_pos,
             leftHandRing_pos,
-            leftHandThumb_middle_pos,
             leftHandThumb_pos
         ]
 
@@ -594,39 +417,30 @@ class LeapPybulletIK():
         rightHand_rot = rotate_quaternion_xyzw(rightHand_rot, np.array([1.0, 0.0, 0.0]), np.pi / 2.0)
 
         rightHandThumb_pos, rightHandIndex_pos, rightHandMiddle_pos, rightHandRing_pos = self.post_process_rokoko_pos(rightHandThumb_pos, rightHandIndex_pos, rightHandMiddle_pos, rightHandRing_pos)
-        rightHandThumb_middle_pos, rightHandIndex_middle_pos, rightHandMiddle_middle_pos, rightHandRing_middle_pos = self.post_process_rokoko_pos(rightHandThumb_middle_pos, rightHandIndex_middle_pos, rightHandMiddle_middle_pos, rightHandRing_middle_pos)
-
         rightHandThumb_pos, rightHandIndex_pos, rightHandMiddle_pos, rightHandRing_pos = self.update_target_vis(rightHand_rot, rightHandThumb_pos, rightHandIndex_pos, rightHandMiddle_pos, rightHandRing_pos)
-        rightHandThumb_middle_pos, rightHandIndex_middle_pos, rightHandMiddle_middle_pos, rightHandRing_middle_pos = self.update_middle_target_vis(rightHand_rot, rightHandThumb_middle_pos, rightHandIndex_middle_pos, rightHandMiddle_middle_pos, rightHandRing_middle_pos)
 
         leapEndEffectorPos = [
-            rightHandIndex_middle_pos,
             rightHandIndex_pos,
-            rightHandMiddle_middle_pos,
             rightHandMiddle_pos,
-            rightHandRing_middle_pos,
             rightHandRing_pos,
-            rightHandThumb_middle_pos,
             rightHandThumb_pos
         ]
 
-        jointPoses_2 = p.calculateInverseKinematics2(
-            self.LeapId_2,
-            self.leapEndEffectorIndex_2,
-            leapEndEffectorPos_2,
-            solver=p.IK_DLS,
-            maxNumIterations=1000,
-            residualThreshold=0.0001,
-        )
+        jointPoses_2 = []
+        for i in range(4):
+            jointPoses_2 = jointPoses_2 + list(
+                p.calculateInverseKinematics(self.LeapId_2, self.leapEndEffectorIndex[i], leapEndEffectorPos_2[i],
+                                      lowerLimits=self.hand_lower_limits, upperLimits=self.hand_upper_limits, jointRanges=self.hand_joint_ranges,
+                                      restPoses=self.HAND_Q.tolist(), maxNumIterations=1000, residualThreshold=0.001))[4 * i:4 * (i + 1)]
+        jointPoses_2 = tuple(jointPoses_2)
 
-        jointPoses = p.calculateInverseKinematics2(
-            self.LeapId,
-            self.leapEndEffectorIndex,
-            leapEndEffectorPos,
-            solver=p.IK_DLS,
-            maxNumIterations=1000,
-            residualThreshold=0.0001,
-        )
+        jointPoses = []
+        for i in range(4):
+            jointPoses = jointPoses + list(
+                p.calculateInverseKinematics(self.LeapId, self.leapEndEffectorIndex[i], leapEndEffectorPos[i],
+                                      lowerLimits=self.hand_lower_limits, upperLimits=self.hand_upper_limits, jointRanges=self.hand_joint_ranges,
+                                      restPoses=self.HAND_Q.tolist(), maxNumIterations=1000, residualThreshold=0.001))[4 * i:4 * (i + 1)]
+        jointPoses = tuple(jointPoses)
 
         combined_jointPoses_2 = (jointPoses_2[0:4] + (0.0,) + jointPoses_2[4:8] + (0.0,) + jointPoses_2[8:12] + (0.0,) + jointPoses_2[12:16] + (0.0,))
         combined_jointPoses_2 = list(combined_jointPoses_2)
@@ -663,7 +477,7 @@ class LeapPybulletIK():
             rightHand_rot,
         )
 
-        after_left_offset_base = rotate_vector_by_quaternion_using_matrix(self.leap_center_offset_2, leftHand_rot)
+        after_left_offset_base = rotate_vector_by_quaternion_using_matrix(self.leap_center_offset, leftHand_rot)
         after_left_offset_base[1] += self.left_offset
         p.resetBasePositionAndOrientation(
             self.LeapId_2,
