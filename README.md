@@ -3,6 +3,10 @@
 <img src="assets/overview.gif" width=100%>
 
 -------
+## News!
+2024-08: We have released new DexCap hardware updates to address known issues. Check out [latest tutorial](https://docs.google.com/document/d/1ANxSA_PctkqFf3xqAkyktgBgDWEbrFK7b1OnJe54ltw/edit#heading=h.yxlxo67jgfyx) (Hardware Setup, Software Setup, Data Collection) for more information.
+
+-------
 ## Table of Contents
 - [Overview](#overview)
 - [Installation](#installation)
