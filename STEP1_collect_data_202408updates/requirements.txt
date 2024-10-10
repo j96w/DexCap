@@ -1,8 +1,0 @@
-pyopenxr
-open3d
-pyrealsense2
-opencv-python
-redis
-pyquaternion
-pynput
-scipy

@@ -2,3 +2,8 @@
 **/trained_models
 *.egg-info
 *.idea
+*.hdf5
+**/trajs
+**/ckpt
+data/
+**/external_models
