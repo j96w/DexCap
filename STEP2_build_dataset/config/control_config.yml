@@ -1,4 +1,0 @@
-CONTROL:
-        SAFETY:
-                MAX_TORQUE: 5
-                MIN_TORQUE: -5

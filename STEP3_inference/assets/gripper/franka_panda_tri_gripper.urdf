@@ -1,0 +1,84 @@
+<?xml version="1.0" ?>
+<robot name="panda_hand" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <link name="panda_hand">
+    <visual>
+      <geometry>
+        <mesh filename="meshes/visual/hand.obj"/>
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="meshes/collision/hand.obj"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.04"/>
+       <mass value=".81"/>
+       <inertia ixx="0.1" ixy="0" ixz="0" iyy="0.1" iyz="0" izz="0.1"/>
+    </inertial>
+  </link>
+  <link name="panda_leftfinger">
+    <visual>
+      <!-- <origin rpy="0 0 3.14159265359" xyz="0 0 0"/> -->
+      <geometry>
+        <mesh filename="meshes/visual/tri_finger.obj"/>
+      </geometry>
+      <material name="green">
+    		<color rgba="0. 1. 0. 1."/>
+  		</material>
+    </visual>
+    <collision>
+      <!-- <origin rpy="0 0 3.14159265359" xyz="0 0 0"/> -->
+      <geometry>
+        <mesh filename="meshes/collision/tri_finger_14cm.obj"/>
+      </geometry>
+    </collision>
+  	<inertial>
+      <origin rpy="0 0 0" xyz="0 0.01 0.02"/>
+       <mass value="0.1"/>
+       <inertia ixx="0.1" ixy="0" ixz="0" iyy="0.1" iyz="0" izz="0.1"/>
+    </inertial>
+  </link>
+  <link name="panda_rightfinger">
+    <visual>
+      <origin rpy="0 0 3.14159265359" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="meshes/visual/tri_finger.obj"/>
+      </geometry>
+      <material name="green">
+        <color rgba="0. 1. 0. 1."/>
+      </material>
+    </visual>
+    <collision>
+    <origin rpy="0 0 3.14159265359" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="meshes/collision/tri_finger_14cm.obj"/>
+      </geometry>
+    </collision>
+  	<inertial>
+
+      <origin rpy="0 0 0" xyz="0 -0.01 0.02"/>
+
+       <mass value="0.1"/>
+
+       <inertia ixx="0.1" ixy="0" ixz="0" iyy="0.1" iyz="0" izz="0.1"/>
+
+    </inertial>
+  </link>
+  <joint name="panda_finger_joint1" type="prismatic">
+    <parent link="panda_hand"/>
+    <child link="panda_leftfinger"/>
+    <origin rpy="0 0 0" xyz="0 0 0.0584"/>
+    <axis xyz="0 -1 0"/>
+    <dynamics damping="10.0"/>
+    <limit effort="20" lower="0.0" upper="0.04" velocity="0.2"/>
+  </joint>
+  <joint name="panda_finger_joint2" type="prismatic">
+    <parent link="panda_hand"/>
+    <child link="panda_rightfinger"/>
+    <origin rpy="0 0 0" xyz="0 0 0.0584"/>
+    <axis xyz="0 1 0"/>
+    <dynamics damping="10.0"/>
+    <limit effort="20" lower="0.0" upper="0.04" velocity="0.2"/>
+  </joint>
+</robot>

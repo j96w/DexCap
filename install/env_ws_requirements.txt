@@ -18,3 +18,4 @@ open3d
 pybullet==3.2.6
 transforms3d
 yourdfpy
+wandb
